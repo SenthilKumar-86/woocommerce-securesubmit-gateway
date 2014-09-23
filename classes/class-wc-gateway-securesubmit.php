@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce SecureSubmit Gateway
 Plugin URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 Description: Heartland Payment Systems gateway for WooCommerce.
-Version: 1.1.0
+Version: 1.0.1
 Author: Mark Hagan
 Author URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 */
@@ -23,6 +23,7 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 		$this->secret_key 			= $this->settings['secret_key'];
 		$this->public_key			= $this->settings['public_key'];
 		$this->paymentaction		= $this->settings['paymentaction'];
+		$this->allow_card_saving	= $this->settings['allow_card_saving'];
 
 		add_action('wp_enqueue_scripts', array( &$this, 'payment_scripts' ) );
 		add_action('admin_notices', array( &$this, 'checks' ) );
@@ -80,14 +81,20 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 			'title' => array(
 							'title' => __('Title', 'wc_securesubmit'),
 							'type' => 'text',
-							'description' => __('This controls the title which the user sees during checkout.', 'wc_securesubmit'),
-							'default' => __( 'Credit card (SecureSubmit)', 'wc_securesubmit' )
+							'description' => __('This controls the title the user sees during checkout.', 'wc_securesubmit'),
+							'default' => __( 'Credit Card', 'wc_securesubmit' )
 						),
 			'description' => array(
 							'title' => __('Description', 'wc_securesubmit' ),
 							'type' => 'textarea',
-							'description' => __( 'This controls the description which the user sees during checkout.', 'wc_securesubmit'),
+							'description' => __( 'This controls the description the user sees during checkout.', 'wc_securesubmit'),
 							'default' => 'Pay with your credit card via SecureSubmit.'
+						),
+			'public_key' => array(
+							'title' => __('Public Key', 'wc_securesubmit'),
+							'type' => 'text',
+							'description' => __('Get your API keys from your SecureSubmit account.', 'wc_securesubmit'),
+							'default' => ''
 						),
 			'secret_key' => array(
 							'title' => __('Secret Key', 'wc_securesubmit' ),
@@ -95,11 +102,12 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 							'description' => __('Get your API keys from your SecureSubmit account.', 'wc_securesubmit'),
 							'default' => ''
 						),
-			'public_key' => array(
-							'title' => __('Public Key', 'wc_securesubmit'),
-							'type' => 'text',
-							'description' => __('Get your API keys from your SecureSubmit account.', 'wc_securesubmit'),
-							'default' => ''
+			'allow_card_saving' => array(
+							'title' => __('Allow Card Saving', 'wc_securesubmit'),
+							'label' => __('Allow Card Saving', 'wc_securesubmit'),
+							'type' => 'checkbox',
+							'description' => 'Note: to use the card saving feature, you must have multi-use tokenization enabled on your Heartland account.',
+							'default' => 'no'
 						),
 			'paymentaction' => array(
 					'title'       => __( 'Payment Action', 'wc_securesubmit' ),
@@ -140,20 +148,22 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 			<?php if ( $this->description ) : ?>
 				<p><?php echo $this->description; ?>
 			<?php endif; ?>
-			<?php if (is_user_logged_in() && ($cards = get_user_meta( get_current_user_id(), '_secure_submit_card', false))) : ?>
-				<p class="form-row form-row-wide">
+			<?php if ( $this->allow_card_saving ) : ?>
+				<?php if (is_user_logged_in() && ($cards = get_user_meta( get_current_user_id(), '_secure_submit_card', false))) : ?>
+					<p class="form-row form-row-wide">
 
-					<a class="button" style="float:right;" href="<?php echo get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ); ?>#saved-cards"><?php _e( 'Saved Cards', 'wc_securesubmit' ); ?></a>
+						<a class="button" style="float:right;" href="<?php echo get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ); ?>#saved-cards"><?php _e( 'Saved Cards', 'wc_securesubmit' ); ?></a>
 
-					<?php foreach ( $cards as $i => $card ) : ?>
-						<input type="radio" id="secure_submit_card_<?php echo $i; ?>" name="secure_submit_card" style="width:auto;" value="<?php echo $i; ?>" />
-						<label style="display:inline;" for="secure_submit_card_<?php echo $i; ?>"><?php echo $card['card_type']; ?> ending in <?php echo $card['last_four']; ?> (<?php echo $card['exp_month'] . '/' . $card['exp_year'] ?>)</label><br />
-					<?php endforeach; ?>
+						<?php foreach ( $cards as $i => $card ) : ?>
+							<input type="radio" id="secure_submit_card_<?php echo $i; ?>" name="secure_submit_card" style="width:auto;" value="<?php echo $i; ?>" />
+							<label style="display:inline;" for="secure_submit_card_<?php echo $i; ?>"><?php echo $card['card_type']; ?> ending in <?php echo $card['last_four']; ?> (<?php echo $card['exp_month'] . '/' . $card['exp_year'] ?>)</label><br />
+						<?php endforeach; ?>
 
-					<input type="radio" id="new_card" name="secure_submit_card" style="width:auto;" <?php checked( 1, 1 ) ?> value="new" /> <label style="display:inline;" for="new_card">Use a new card</label>
+						<input type="radio" id="new_card" name="secure_submit_card" style="width:auto;" <?php checked( 1, 1 ) ?> value="new" /> <label style="display:inline;" for="new_card">Use a new card</label>
 
-				</p>
-				<div class="clear"></div>
+					</p>
+					<div class="clear"></div>
+				<?php endif; ?>
 			<?php endif; ?>
 			<div class="securesubmit_new_card">
 				<p class="form-row form-row-wide">
@@ -186,10 +196,12 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 					<input type="text" id="securesubmit_card_csc" maxlength="4" style="width:4em;" autocomplete="off" class="input-text card-cvc" />
 					<span class="help securesubmit_card_csc_description"></span>
 				</p>
-				<p class="form-row form-row-wide">
-					<input type="checkbox" autocomplete="off" id="save_card" name="save_card" value="true" style="display:inline">
-					<label for="save_card" style="display: inline;"><?php _e("Save Credit Card for Future Use", 'wc_securesubmit') ?></label>
-				</p>
+				<?php if ( $this->allow_card_saving ) : ?>
+					<p class="form-row form-row-wide">
+						<input type="checkbox" autocomplete="off" id="save_card" name="save_card" value="true" style="display:inline">
+						<label for="save_card" style="display: inline;"><?php _e("Save Credit Card for Future Use", 'wc_securesubmit') ?></label>
+					</p>
+				<?php endif; ?>
 				<div class="clear"></div>
 			</div>
 		</fieldset>
@@ -271,8 +283,6 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 			} else {
 				$hpstoken->tokenValue = $securesubmit_token;
 			}
-
-            
 
             $details = new HpsTransactionDetails();
             $details->invoiceNumber = $order->id;

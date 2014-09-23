@@ -1,13 +1,12 @@
 <?php
 /*
 Plugin Name: WooCommerce SecureSubmit Gateway
-Plugin URI: http://woothemes.com/woocommerce
-Description: A payment gateway for SecureSubmit (http://developer.heartlandpaymentsystems.com/SecureSubmit). A SecureSubmit account and a valid SSL certificate is required (for security reasons) for this gateway to function.
-Version: 1.0.0
-Author: Heartland Payment Systems
-Author URI: http://developer.heartlandpaymentsystems.com/SecureSubmit
+Plugin URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
+Description: Heartland Payment Systems gateway for WooCommerce.
+Version: 1.0.1
+Author: Mark Hagan
+Author URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 */
-
 add_action( 'plugins_loaded', 'woocommerce_securesubmit_init', 0 );
 
 function woocommerce_securesubmit_init() {

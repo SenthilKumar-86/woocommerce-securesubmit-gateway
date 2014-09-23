@@ -35,5 +35,9 @@ Get your Certification (Dev/Sandbox) Api Keys by creating an account on https://
 
 == Changelog ==
 
+= 1.0.1 =
+* Made Card-Saving optional
+* Reversed order of Public/Secret Keys
+
 = 1.0.0 =
 * Initial Release
