@@ -35,6 +35,9 @@ Get your Certification (Dev/Sandbox) Api Keys by creating an account on https://
 
 == Changelog ==
 
+= 1.0.3 =
+* Version only update
+
 = 1.0.2 =
 * Fixed optional card-saving
 
