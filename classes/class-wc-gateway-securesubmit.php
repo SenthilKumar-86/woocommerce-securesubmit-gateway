@@ -23,7 +23,7 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 		$this->secret_key 			= $this->settings['secret_key'];
 		$this->public_key			= $this->settings['public_key'];
 		$this->paymentaction		= $this->settings['paymentaction'];
-		$this->allow_card_saving	= $this->settings['allow_card_saving'];
+		$this->allow_card_saving	= (bool)$this->settings['allow_card_saving'];
 
 		add_action('wp_enqueue_scripts', array( &$this, 'payment_scripts' ) );
 		add_action('admin_notices', array( &$this, 'checks' ) );
@@ -148,7 +148,7 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 			<?php if ( $this->description ) : ?>
 				<p><?php echo $this->description; ?>
 			<?php endif; ?>
-			<?php if ( $this->allow_card_saving ) : ?>
+			<?php if ( $this->allow_card_saving == 'yes' ) : ?>
 				<?php if (is_user_logged_in() && ($cards = get_user_meta( get_current_user_id(), '_secure_submit_card', false))) : ?>
 					<p class="form-row form-row-wide">
 
@@ -196,7 +196,7 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway {
 					<input type="text" id="securesubmit_card_csc" maxlength="4" style="width:4em;" autocomplete="off" class="input-text card-cvc" />
 					<span class="help securesubmit_card_csc_description"></span>
 				</p>
-				<?php if ( $this->allow_card_saving ) : ?>
+				<?php if ( $this->allow_card_saving == 'yes' ) : ?>
 					<p class="form-row form-row-wide">
 						<input type="checkbox" autocomplete="off" id="save_card" name="save_card" value="true" style="display:inline">
 						<label for="save_card" style="display: inline;"><?php _e("Save Credit Card for Future Use", 'wc_securesubmit') ?></label>
