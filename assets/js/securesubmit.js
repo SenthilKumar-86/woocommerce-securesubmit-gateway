@@ -61,7 +61,9 @@ function secureSubmitResponseHandler( response ) {
         jQuery('.card-number').closest('p').before( '<ul class="woocommerce_error woocommerce-error"><li>' + response.message + '</li></ul>' );
         $form.unblock();
     } else {
-        $form.append("<input type='hidden' class='securesubmit_token' name='securesubmit_token' value='" + response.token_value + "'/>");
+    	jQuery('#securesubmit_token').remove();
+    	
+        $form.append("<input type='hidden' id='securesubmit_token' class='securesubmit_token' name='securesubmit_token' value='" + response.token_value + "'/>");
         $form.append("<input type='hidden' name='last_four' value='" + response.last_four + "'/>");
         $form.append("<input type='hidden' name='card_type' value='" + response.card_type + "'/>");
         $form.append("<input type='hidden' name='exp_month' value='" + response.exp_month + "'/>");
