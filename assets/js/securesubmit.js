@@ -70,5 +70,7 @@ function secureSubmitResponseHandler( response ) {
         $form.append("<input type='hidden' name='exp_year' value='" + response.exp_year + "'/>");
 
         $form.submit();
+
+        jQuery('#securesubmit_token').remove();
     }
 }
