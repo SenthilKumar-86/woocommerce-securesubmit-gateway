@@ -3,8 +3,8 @@
 Plugin Name: WooCommerce SecureSubmit Gateway
 Plugin URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 Description: Heartland Payment Systems gateway for WooCommerce.
-Version: 1.0.5
-Author: Mark Hagan
+Version: 1.1.0
+Author: SecureSubmit
 Author URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 */
 add_action( 'plugins_loaded', 'woocommerce_securesubmit_init', 0 );
@@ -58,17 +58,17 @@ function woocommerce_securesubmit_init() {
 					<td><?php esc_html_e($card['exp_month']); ?> / <?php esc_html_e($card['exp_year']); ?></td>
 					<td>
 						<form action="#saved-cards" method="POST">
-	                        <?php wp_nonce_field ( 'secure_submit_del_card' ); ?>
-	                        <input type="hidden" name="delete_card" value="<?php esc_attr($i); ?>">
-	                        <input type="submit" value="Delete Card">
-	                    </form>
+                            <?php wp_nonce_field ( 'secure_submit_del_card' ); ?>
+                            <input type="hidden" name="delete_card" value="<?php esc_attr($i); ?>">
+                            <input type="submit" value="Delete Card">
+                        </form>
 					</td>
 				</tr>
 				<?php endforeach; ?>
 			</tbody>
 		</table>
 
-		<?php	
+		<?php
 	}
 
 	add_filter('woocommerce_payment_gateways', 'add_securesubmit_gateway');
