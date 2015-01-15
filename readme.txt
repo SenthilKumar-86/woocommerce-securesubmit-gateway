@@ -35,6 +35,9 @@ Get your Certification (Dev/Sandbox) Api Keys by creating an account on https://
 
 == Changelog ==
 
+= 1.1.1 =
+* Ensure SDK isn't already loaded
+
 = 1.1.0 =
 * Adding refund capabilities
 
