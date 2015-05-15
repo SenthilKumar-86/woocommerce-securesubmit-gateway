@@ -1,10 +1,10 @@
 === WooCommerce SecureSubmit Gateway ===
 Contributors: markhagan
 Tags: woocommerce, woo, commerce, heartland, payment, systems, gateway, token, tokenize, save cards
-Tested up to: 4.1.0
+Tested up to: 4.2.0
 Stable tag: trunk
 License: Custom
-License URI: https://github.com/SecureSubmit/magento-extension/blob/master/LICENSE
+License URI: https://github.com/hps/heartland-woocommerce-plugin/blob/master/LICENSE
 
 SecureSubmit allows merchants to take PCI-Friendly Credit Card payments on WooCommerce using Heartland Payment Systems Payment Gateway.
 
@@ -34,6 +34,11 @@ Get your Certification (Dev/Sandbox) Api Keys by creating an account on https://
 3. A view of the Manage Cards section.
 
 == Changelog ==
+
+= 1.2.0 =
+* Updated SDK
+* Added support for recurring payments through WooCommerce Subscriptions
+* Added capability for setting custom error messages
 
 = 1.1.1 =
 * Ensure SDK isn't already loaded
