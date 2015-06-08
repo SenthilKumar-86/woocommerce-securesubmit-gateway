@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce SecureSubmit Gateway
 Plugin URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 Description: Heartland Payment Systems gateway for WooCommerce.
-Version: 1.2.0
+Version: 1.2.1
 Author: SecureSubmit
 Author URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 */
@@ -26,6 +26,10 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
         $this->public_key           = $this->getSetting('public_key');
         $this->custom_error         = $this->getSetting('custom_error');
         $this->paymentaction        = $this->getSetting('paymentaction');
+        $this->allow_fraud          = $this->getSetting('allow_fraud');
+        $this->email_fraud          = $this->getSetting('email_fraud');
+        $this->fraud_address        = $this->getSetting('fraud_address');
+        $this->fraud_text           = $this->getSetting('fraud_text');
         $this->allow_card_saving    = ($this->getSetting('allow_card_saving') == 'yes' ? true : false);
         $this->supports             = array(
                                         'products',
@@ -129,6 +133,32 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
                             'type' => 'checkbox',
                             'description' => 'Note: to use the card saving feature, you must have multi-use tokenization enabled on your Heartland account.',
                             'default' => 'no'
+                       ),
+            'allow_fraud' => array(
+                            'title' => __('Allow Suspicious', 'wc_securesubmit'),
+                            'label' => __('Do not fail suspicious orders', 'wc_securesubmit'),
+                            'type' => 'checkbox',
+                            'description' => 'Note: You will have 72 hours from the original authorization date to manually review suspicious orders in the virtual terminal and make a final decision (either to accept the gateway fraud decision or to manually override).',
+                            'default' => 'no'
+                       ),
+            'email_fraud' => array(
+                            'title' => __('Email Suspicious', 'wc_securesubmit'),
+                            'label' => __('Email store owner on suspicious orders', 'wc_securesubmit'),
+                            'type' => 'checkbox',
+                            'description' => '',
+                            'default' => 'no'
+                       ),
+            'fraud_address' => array(
+                            'title' => __('Notification Email Address', 'wc_securesubmit'),
+                            'type' => 'text',
+                            'description' => __('This email address will be notified of suspicious orders.', 'wc_securesubmit'),
+                            'default' => __('', 'wc_securesubmit')
+                       ),
+            'fraud_text' => array(
+                            'title' => __('Fraud Text', 'wc_securesubmit'),
+                            'type' => 'text',
+                            'description' => __('This is the text that will display to the customer when fraud is detected and the transaction fails.', 'wc_securesubmit'),
+                            'default' => __('Please call customer service.', 'wc_securesubmit')
                        ),
             'paymentaction' => array(
                     'title'       => __('Payment Action', 'wc_securesubmit'),
@@ -269,7 +299,31 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
                     'redirect' => $this->get_return_url($order)
                 );
             } catch (HpsException $e) {
-                $this->throwUserError(__($e->getMessage(), 'wc_securesubmit'));
+                if ($this->allow_fraud == 'yes' && $e->getCode() == 27) {
+                    // we can skip the card saving: if it fails for possible fraud there will be no token.
+
+                    if ($this->email_fraud == 'yes' && $this->fraud_address != '') {
+                        wc_mail(
+                            $this->fraud_address, 
+                            'Suspicious order allowed (' . $order_id . ')',
+                            'Hello,<br><br>Heartland has determined that you should review order ' . $order_id . ' for the amount of ' . $order->order_total . '.');
+                    }
+
+                    $order->update_status('on-hold', __('<strong>Accepted suspicious transaction.</strong> Please use Virtual Terminal to review.', 'hps-securesubmit'));
+                    $order->reduce_order_stock();
+                    $woocommerce->cart->empty_cart();
+
+                    return array(
+                        'result' => 'success',
+                        'redirect' => $this->get_return_url($order)
+                    );
+                } else {
+                    if ($e->getCode() == 27) {
+                        $this->throwUserError(__($this->fraud_text, 'wc_securesubmit'));
+                    } else {
+                        $this->throwUserError(__($e->getMessage(), 'wc_securesubmit'));
+                    }
+                }
             }
         } catch (Exception $e) {
             $error = __('Error:', 'wc_securesubmit') . ' "' . $e->getMessage() . '"';
@@ -320,7 +374,7 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
         try {
             $chargeService = $this->getCreditService();
             try {
-                $response = $chargeService->refundTransaction(
+                $response = $chargeService->refund(
                     $amount,
                     strtolower(get_woocommerce_currency()),
                     $transactionId
