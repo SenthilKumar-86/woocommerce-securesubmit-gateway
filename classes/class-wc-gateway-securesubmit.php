@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce SecureSubmit Gateway
 Plugin URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 Description: Heartland Payment Systems gateway for WooCommerce.
-Version: 1.2.1
+Version: 1.2.2
 Author: SecureSubmit
 Author URI: https://developer.heartlandpaymentsystems.com/SecureSubmit/
 */
@@ -319,10 +319,23 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
                     );
                 } else {
                     if ($e->getCode() == 27) {
-                        $this->throwUserError(__($this->fraud_text, 'wc_securesubmit'));
+                        if (function_exists('wc_add_notice')) {
+                            wc_add_notice(__($this->fraud_text, 'wc_securesubmit'), 'error');
+                        } else {
+                            $woocommerce->add_error(__($this->fraud_text, 'wc_securesubmit'));
+                        }
                     } else {
-                        $this->throwUserError(__($e->getMessage(), 'wc_securesubmit'));
+                        if (function_exists('wc_add_notice')) {
+                            wc_add_notice(__($e->getMessage(), 'wc_securesubmit'), 'error');
+                        } else {
+                            $woocommerce->add_error(__($e->getMessage(), 'wc_securesubmit'));
+                        }
                     }
+
+                    return array(
+                        'result'   => 'fail',
+                        'redirect' => ''
+                    );
                 }
             }
         } catch (Exception $e) {
@@ -332,6 +345,12 @@ class WC_Gateway_SecureSubmit extends WC_Payment_Gateway
             } else {
                 $woocommerce->add_error($error);
             }
+
+            return array(
+                'result'   => 'fail',
+                'redirect' => ''
+            );
+            
             return;
         }
     }
